@@ -1,4 +1,4 @@
-name: Dev Build & Release
+﻿name: Dev Build & Release
 
 on:
   push:
@@ -28,13 +28,9 @@ jobs:
           $date = Get-Date -Format "yyyyMMdd"
           Move-Item build\windows\x86\release\VirtualDesktopSwitcher.exe "VirtualDesktopSwitcher-dev+${date}-${shortSha}.exe"
 
-      - name: Upload to Latest Release
-        shell: pwsh
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          $tag = gh release list --limit 1 --json tagName --jq '.[0].tagName'
-          gh release view "$tag" --json assets --jq '.assets[].name' | Select-String "VirtualDesktopSwitcher-dev" | ForEach-Object {
-            gh release delete-asset "$tag" $_ --yes
-          }
-          gh release upload "$tag" VirtualDesktopSwitcher-*.exe --clobber
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: VirtualDesktopSwitcher-dev
+          path: VirtualDesktopSwitcher-*.exe
+          if-no-files-found: error
