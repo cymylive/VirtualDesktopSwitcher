@@ -20,6 +20,7 @@
 - **Pin window to all desktops**: `Alt + D` to pin (or unpin) the current window to all virtual desktops, keeping it visible across desktop switches.
 - **Desktop indicator**: Three display modes — **Symbol indicator** (**◉** current, **○** non-empty, **◌** empty desktops), **Desktop name** (shows the current desktop's name), or **Show both** (name + symbols on two rows). Fully customizable position, size, style, and font.
 - **Scroll to switch**: Scroll the mouse wheel while hovering over the indicator to quickly switch to the previous/next virtual desktop.
+- **Click to switch**: Left-click a symbol on the indicator to jump directly to that symbol's virtual desktop (disabled in edit mode; drag takes priority).
 - **Drag to move**: Drag any window onto an indicator symbol to move it to that virtual desktop and automatically switch to it. Can be configured to require holding **Alt** or **Ctrl** (or disabled entirely).
 - **Tray icon shows desktop number**: The tray icon displays the current desktop number — switchable back to the default icon, with customizable number color.
 - **Cursor focus**: On multi-monitor setups, moving the mouse cursor between monitors automatically focuses the top window on the target monitor.
@@ -44,6 +45,7 @@ To build from source, see [Building from Source](#building-from-source) below.
 - Use ``Alt + ` `` to return to the previous virtual desktop
 - Use `Alt + D` to pin (or unpin) the current window to all desktops
 - **Scroll** the mouse wheel while hovering over the indicator to switch desktops
+- **Click** a symbol on the indicator to switch directly to that desktop
 - **Drag a window** onto an indicator symbol to move it to that desktop and switch to it automatically
 - Right-click the tray icon to configure:
    - Adjust indicator **position**, **size**, **style**, **hotkeys**, and **display content** (symbol indicator / desktop name / both)
