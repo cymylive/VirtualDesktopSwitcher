@@ -1242,6 +1242,15 @@ LRESULT DesktopIndicator::HandleMessage(HWND hwnd, UINT msg, WPARAM wp, LPARAM l
 
     case WM_LBUTTONDOWN:
         if (HandleDragStart(hwnd, lp)) { return 0; }
+        if (!m_editMode && m_scrollSwitchFn) {
+            POINT pt = {GET_X_LPARAM(lp), GET_Y_LPARAM(lp)};
+            ClientToScreen(hwnd, &pt);
+            int hitIndex = -1;
+            if (GetSymbolIndexAt(pt, hitIndex) && hitIndex >= 0 && hitIndex < m_desktopCount) {
+                m_scrollSwitchFn(hitIndex);
+                return 0;
+            }
+        }
         return DefWindowProcW(hwnd, msg, wp, lp);
 
     case WM_MOUSEMOVE:
