@@ -434,7 +434,7 @@ bool DesktopIndicator::IsPtOnOverlay(POINT pt) const {
 
 HWND DesktopIndicator::CreateMonitorWindow(HINSTANCE hInst) {
     HWND hwnd = CreateWindowExW(
-        WS_EX_LAYERED | WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE,
+        WS_EX_LAYERED | WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE | WS_EX_TRANSPARENT,
         L"DesktopIndicatorClass", L"DesktopIndicator",
         WS_POPUP, 0, 0, 0, 0, nullptr, nullptr, hInst, this);
     if (hwnd != nullptr) {
@@ -710,7 +710,7 @@ void DesktopIndicator::SetEditMode(bool edit) {
         if (m_editMode) {
             SetWindowLong(l.hwnd, GWL_EXSTYLE, static_cast<LONG>(ex & ~static_cast<DWORD>(WS_EX_TRANSPARENT)));
         } else {
-            SetWindowLong(l.hwnd, GWL_EXSTYLE, static_cast<LONG>(ex & ~static_cast<DWORD>(WS_EX_TRANSPARENT)));
+            SetWindowLong(l.hwnd, GWL_EXSTYLE, static_cast<LONG>(ex | WS_EX_TRANSPARENT));
         }
         SetWindowPos(l.hwnd, nullptr, 0, 0, 0, 0,
                      SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED | SWP_NOACTIVATE);
@@ -1158,7 +1158,7 @@ bool DesktopIndicator::HandleRawInput(HWND /*hwnd*/, LPARAM lp) {
 
     auto *raw = reinterpret_cast<RAWINPUT *>(buf.data()); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
     if (raw->header.dwType != RIM_TYPEMOUSE
-        || (raw->data.mouse.usButtonFlags & RI_MOUSE_WHEEL) == 0) { // NOLINT(cppcoreguidelines-pro-type-union-access)
+        || (raw->data.mouse.usButtonFlags & (RI_MOUSE_WHEEL | RI_MOUSE_LEFT_BUTTON_DOWN)) == 0) { // NOLINT(cppcoreguidelines-pro-type-union-access)
         return false;
     }
 
@@ -1175,6 +1175,17 @@ bool DesktopIndicator::HandleRawInput(HWND /*hwnd*/, LPARAM lp) {
     }
 
     if (!overIndicator) { return false; }
+
+    if ((raw->data.mouse.usButtonFlags & RI_MOUSE_LEFT_BUTTON_DOWN) != 0) { // NOLINT(cppcoreguidelines-pro-type-union-access)
+        if (!m_editMode && m_scrollSwitchFn) {
+            int hitIndex = -1;
+            if (GetSymbolIndexAt(cursorPt, hitIndex) && hitIndex >= 0 && hitIndex < m_desktopCount) {
+                m_scrollSwitchFn(hitIndex);
+            }
+        }
+        return true;
+    }
+    if ((raw->data.mouse.usButtonFlags & RI_MOUSE_WHEEL) == 0) { return false; } // NOLINT(cppcoreguidelines-pro-type-union-access)
 
     auto delta = static_cast<int16_t>(raw->data.mouse.usButtonData); // NOLINT(cppcoreguidelines-pro-type-union-access)
 
@@ -1239,14 +1250,6 @@ LRESULT DesktopIndicator::HandleMessage(HWND hwnd, UINT msg, WPARAM wp, LPARAM l
     case WM_INPUT:
         if (HandleRawInput(hwnd, lp)) { return 0; }
         break;
-
-    case WM_NCHITTEST: {
-        POINT pt = {GET_X_LPARAM(lp), GET_Y_LPARAM(lp)};
-        int hit = -1;
-        if (GetSymbolIndexAt(pt, hit)) { return HTCLIENT; }
-        if (m_editMode) { return HTCLIENT; }
-        return HTTRANSPARENT;
-    }
 
     case WM_LBUTTONDOWN:
         if (HandleDragStart(hwnd, lp)) { return 0; }
